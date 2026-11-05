@@ -36,7 +36,9 @@ export default function TransactionsPage() {
     )
   }, [items, search])
 
-  const totalIn = items.filter((i) => i.kind === "income").reduce((s, i) => s + i.tx.amount, 0)
+  const totalIn = items
+    .filter((i) => i.kind === "income" || i.kind === "withdrawal")
+    .reduce((s, i) => s + i.tx.amount, 0)
   const totalOut = items.filter((i) => i.kind === "outflow").reduce((s, i) => s + i.tx.amount, 0)
 
   const loading = tx.loading || acc.loading || cat.loading

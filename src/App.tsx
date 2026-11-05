@@ -6,6 +6,7 @@ import DashboardPage from "@/pages/DashboardPage"
 import SetupPage from "@/pages/SetupPage"
 import TransactionsPage from "@/pages/TransactionsPage"
 import BudgetingPage from "@/pages/BudgetingPage"
+import SavingsPage from "@/pages/SavingsPage"
 
 export default function App() {
   return (
@@ -17,6 +18,7 @@ export default function App() {
           <Route path="/transaksi" element={<TransactionsPage />} />
           <Route path="/budgeting" element={<BudgetingPage />} />
           <Route path="/setup" element={<SetupPage />} />
+          <Route path="/tabungan" element={<SavingsPage />} />
         </Route>
       </Route>
     </Routes>

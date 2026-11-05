@@ -126,7 +126,7 @@ function BudgetRow({ category, budget, actual, isLimit, actualLabel, onSave }: R
       <div className="h-2 overflow-hidden rounded-full bg-muted">
         <div
           className={cn("h-full rounded-full transition-all", barColor)}
-          style={{ width: `${Math.min(pct, 100)}%` }}
+          style={{ width: `${Math.max(0, Math.min(pct, 100))}%` }}
         />
       </div>
 

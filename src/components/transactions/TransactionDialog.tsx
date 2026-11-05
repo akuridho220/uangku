@@ -10,12 +10,15 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { OptionSelect } from "@/components/OptionSelect"
 
-type Kind = "income" | "spending" | "bills" | "saving_invest" | "financial_goals" | "transfer"
+export type Kind = "income" | "spending" | "bills" | "saving_invest" | "financial_goals" | "transfer"
+export type Direction = "deposit" | "withdraw"
+export type TransactionPreset = { kind: Kind; categoryId: string; direction: Direction }
 
 type DialogProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
   item: TxItem | null
+  preset?: TransactionPreset | null
   cashflows: CashflowRow[]
   categories: CategoryRow[]
   accounts: AccountRow[]
@@ -26,6 +29,7 @@ export function TransactionDialog({
   open,
   onOpenChange,
   item,
+  preset,
   cashflows,
   categories,
   accounts,
@@ -40,6 +44,7 @@ export function TransactionDialog({
         </DialogHeader>
         <TransactionForm
           item={item}
+          preset={item ? null : (preset ?? null)}
           cashflows={cashflows}
           categories={categories}
           accounts={accounts}
@@ -56,6 +61,7 @@ export function TransactionDialog({
 
 type FormProps = {
   item: TxItem | null
+  preset: TransactionPreset | null
   cashflows: CashflowRow[]
   categories: CategoryRow[]
   accounts: AccountRow[]
@@ -63,15 +69,18 @@ type FormProps = {
   onSaved: () => void
 }
 
-function TransactionForm({ item, cashflows, categories, accounts, onCancel, onSaved }: FormProps) {
+function TransactionForm({ item, preset, cashflows, categories, accounts, onCancel, onSaved }: FormProps) {
   const tx = item?.tx ?? null
   const isTransferTx = !!tx && !tx.category_id
 
   const [kind, setKind] = useState<Kind>(
-    item ? (item.cashflow ? (item.cashflow.code as Kind) : "transfer") : "spending"
+    item ? (item.cashflow ? (item.cashflow.code as Kind) : "transfer") : (preset?.kind ?? "spending")
+  )
+  const [direction, setDirection] = useState<Direction>(
+    item ? (item.kind === "withdrawal" ? "withdraw" : "deposit") : (preset?.direction ?? "deposit")
   )
   const [date, setDate] = useState(tx?.tx_date ?? todayISO())
-  const [categoryId, setCategoryId] = useState(tx?.category_id ?? "")
+  const [categoryId, setCategoryId] = useState(tx?.category_id ?? preset?.categoryId ?? "")
   const [description, setDescription] = useState(tx?.description ?? "")
   const [amount, setAmount] = useState(tx ? String(tx.amount) : "")
   const [accountId, setAccountId] = useState(
@@ -87,12 +96,24 @@ function TransactionForm({ item, cashflows, categories, accounts, onCancel, onSa
     { code: "transfer" as Kind, label: "Transfer", color: "#6b7280" },
   ]
 
+  const isSavingKind = kind === "saving_invest" || kind === "financial_goals"
+  // true = uang masuk ke account (Income, atau Pencairan dari tabungan)
+  const inbound = kind === "income" || (isSavingKind && direction === "withdraw")
+
   const currentCashflow = cashflows.find((c) => c.code === kind)
   const categoryOptions = categories.filter(
     (c) => c.cashflow_id === currentCashflow?.id && (!c.is_archived || c.id === tx?.category_id)
   )
   const ownAccountIds = [tx?.account_in_id, tx?.account_out_id]
   const accountOptions = accounts.filter((a) => !a.is_archived || ownAccountIds.includes(a.id))
+
+  const accountLabel = inbound
+    ? kind === "income"
+      ? "Masuk ke account (Transfer In)"
+      : "Cairkan ke account (Transfer In)"
+    : isSavingKind
+      ? "Setor dari account (Transfer Out)"
+      : "Keluar dari account (Transfer Out)"
 
   function changeKind(next: Kind) {
     setKind(next)
@@ -122,8 +143,8 @@ function TransactionForm({ item, cashflows, categories, accounts, onCancel, onSa
       if (!accountId) return setError("Pilih account.")
       accountsPart = {
         category_id: categoryId,
-        account_in_id: kind === "income" ? accountId : null,
-        account_out_id: kind === "income" ? null : accountId,
+        account_in_id: inbound ? accountId : null,
+        account_out_id: inbound ? null : accountId,
       }
     }
 
@@ -162,15 +183,36 @@ function TransactionForm({ item, cashflows, categories, accounts, onCancel, onSa
               className="gap-2"
               onClick={() => changeKind(k.code)}
             >
-              <span
-                className="size-2 rounded-full"
-                style={{ backgroundColor: k.color ?? "#9ca3af" }}
-              />
+              <span className="size-2 rounded-full" style={{ backgroundColor: k.color ?? "#9ca3af" }} />
               {k.label}
             </Button>
           ))}
         </div>
       </div>
+
+      {isSavingKind && (
+        <div className="space-y-2">
+          <Label>Arah</Label>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              size="sm"
+              variant={direction === "deposit" ? "default" : "outline"}
+              onClick={() => setDirection("deposit")}
+            >
+              Setoran
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant={direction === "withdraw" ? "default" : "outline"}
+              onClick={() => setDirection("withdraw")}
+            >
+              Pencairan
+            </Button>
+          </div>
+        </div>
+      )}
 
       <div className="space-y-2">
         <Label htmlFor="tx-date">Tanggal</Label>
@@ -211,13 +253,7 @@ function TransactionForm({ item, cashflows, categories, accounts, onCancel, onSa
           <AccountSelect id="tx-to" label="Ke account" value={toId} onChange={setToId} options={accountOptions} />
         </div>
       ) : (
-        <AccountSelect
-          id="tx-account"
-          label={kind === "income" ? "Masuk ke account (Transfer In)" : "Keluar dari account (Transfer Out)"}
-          value={accountId}
-          onChange={setAccountId}
-          options={accountOptions}
-        />
+        <AccountSelect id="tx-account" label={accountLabel} value={accountId} onChange={setAccountId} options={accountOptions} />
       )}
 
       {error && <p className="text-sm text-destructive">{error}</p>}

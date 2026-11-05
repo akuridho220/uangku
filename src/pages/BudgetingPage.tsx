@@ -24,12 +24,20 @@ export default function BudgetingPage() {
   )
 
   const actualByCategory = useMemo(() => {
+    const incomeCfIds = new Set(
+      cat.cashflows.filter((cf) => cf.code === "income").map((cf) => cf.id)
+    )
+    const incomeCategoryIds = new Set(
+      cat.categories.filter((c) => incomeCfIds.has(c.cashflow_id)).map((c) => c.id)
+    )
     const map = new Map<string, number>()
     for (const t of tx.transactions) {
-      if (t.category_id) map.set(t.category_id, (map.get(t.category_id) ?? 0) + t.amount)
+      if (!t.category_id) continue
+      const sign = t.account_in_id && !incomeCategoryIds.has(t.category_id) ? -1 : 1
+      map.set(t.category_id, (map.get(t.category_id) ?? 0) + sign * t.amount)
     }
     return map
-  }, [tx.transactions])
+  }, [tx.transactions, cat.cashflows, cat.categories])
 
   const sections: Section[] = useMemo(
     () =>

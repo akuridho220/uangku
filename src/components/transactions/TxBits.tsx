@@ -16,17 +16,16 @@ export function CashflowPill({ item }: { item: TxItem }) {
 }
 
 export function AmountText({ item }: { item: TxItem }) {
-  const cls =
-    item.kind === "income"
-      ? "text-green-600"
-      : item.kind === "outflow"
-        ? "text-red-600"
-        : "text-muted-foreground"
-  const sign = item.kind === "income" ? "+" : item.kind === "outflow" ? "−" : ""
+  const style = {
+    income: { cls: "text-green-600", sign: "+" },
+    withdrawal: { cls: "text-teal-600", sign: "+" },
+    outflow: { cls: "text-red-600", sign: "−" },
+    transfer: { cls: "text-muted-foreground", sign: "" },
+  }[item.kind]
 
   return (
-    <span className={cn("font-medium tabular-nums", cls)}>
-      {sign}
+    <span className={cn("font-medium tabular-nums", style.cls)}>
+      {style.sign}
       {formatRupiah(item.tx.amount)}
     </span>
   )

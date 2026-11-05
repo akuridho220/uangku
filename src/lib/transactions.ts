@@ -1,6 +1,6 @@
 import type { AccountRow, CashflowRow, CategoryRow, TransactionRow } from "@/types/db"
 
-export type TxKind = "income" | "outflow" | "transfer"
+export type TxKind = "income" | "outflow" | "withdrawal" | "transfer"
 
 export type TxItem = {
   tx: TransactionRow
@@ -31,9 +31,12 @@ export function buildItems(
 
     const category = categoryMap.get(tx.category_id)
     const cashflow = category ? (cashflowMap.get(category.cashflow_id) ?? null) : null
+    const isIncome = cashflow?.code === "income"
+
     return {
       tx,
-      kind: cashflow?.code === "income" ? "income" : "outflow",
+      // kategori non-income dengan Account In = pencairan (uang kembali dari tabungan)
+      kind: isIncome ? "income" : tx.account_in_id ? "withdrawal" : "outflow",
       cashflow,
       categoryName: category?.name ?? "?",
       inName,
@@ -44,5 +47,7 @@ export function buildItems(
 
 export function accountText(item: TxItem) {
   if (item.kind === "transfer") return `${item.outName} → ${item.inName}`
-  return item.kind === "income" ? (item.inName ?? "") : (item.outName ?? "")
+  return item.kind === "income" || item.kind === "withdrawal"
+    ? (item.inName ?? "")
+    : (item.outName ?? "")
 }

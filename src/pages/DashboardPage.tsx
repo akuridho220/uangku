@@ -40,6 +40,8 @@ export default function DashboardPage() {
     for (const it of items) {
       if (it.kind === "income") {
         income += it.tx.amount
+      } else if (it.kind === "withdrawal") {
+        saved -= it.tx.amount
       } else if (it.kind === "outflow") {
         const code = it.cashflow?.code
         if (code === "saving_invest" || code === "financial_goals") {

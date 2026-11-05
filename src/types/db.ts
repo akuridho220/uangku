@@ -22,6 +22,8 @@ export type CategoryRow = {
   target_amount: number | null
   sort_order: number
   is_archived: boolean
+  start_date: string | null
+  opening_value: number
 }
 
 export type TransactionRow = {
@@ -40,6 +42,14 @@ export type BudgetRow = {
   year: number
   month: number
   amount: number
+}
+
+export type ValuationRow = {
+  id: string
+  category_id: string
+  val_date: string
+  value: number
+  created_at: string
 }
 
 export const CASHFLOW_ORDER = [

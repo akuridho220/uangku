@@ -13,7 +13,7 @@ export default defineConfig({
       includeAssets: ["logo.svg", "apple-touch-icon-180x180.png"],
       manifest: {
         name: "UangKu",
-        short_name: "Keuangan",
+        short_name: "UangKu",
         description: "Aplikasi pencatatan keuangan pribadi",
         theme_color: "#0f172a",
         background_color: "#ffffff",
