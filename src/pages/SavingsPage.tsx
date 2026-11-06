@@ -15,6 +15,7 @@ import {
   TransactionDialog,
   type TransactionPreset,
 } from "@/components/transactions/TransactionDialog"
+import { StocksTab } from "@/components/stocks/StocksTab"
 
 export default function SavingsPage() {
   const acc = useAccounts()
@@ -90,6 +91,7 @@ export default function SavingsPage() {
                 {g.cf.label}
               </TabsTrigger>
             ))}
+            <TabsTrigger value="saham">Saham</TabsTrigger>
           </TabsList>
 
           {groups.map((g) => {
@@ -147,6 +149,9 @@ export default function SavingsPage() {
               </TabsContent>
             )
           })}
+          <TabsContent value="saham" className="mt-4">
+            <StocksTab />
+          </TabsContent>
         </Tabs>
       )}
 

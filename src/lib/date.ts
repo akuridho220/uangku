@@ -50,3 +50,12 @@ export function daysInMonth(key: string) {
   const [y, m] = key.split("-").map(Number)
   return new Date(y, m, 0).getDate()
 }
+
+export function formatDateMedium(iso: string) {
+  const [y, m, d] = iso.split("-").map(Number)
+  return new Intl.DateTimeFormat("id-ID", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(new Date(y, m - 1, d))
+}

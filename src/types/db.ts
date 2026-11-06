@@ -52,6 +52,40 @@ export type ValuationRow = {
   created_at: string
 }
 
+export type StockRow = {
+  id: string
+  ticker: string
+  price: number | null
+  price_date: string | null
+  price_updated_at: string | null
+}
+
+export type TradeRow = {
+  id: string
+  stock_id: string
+  side: "buy" | "sell"
+  trade_date: string
+  lots: number
+  price: number
+  fee: number
+  note: string
+  created_at: string
+}
+
+export type DividendRow = {
+  id: string
+  stock_id: string
+  pay_date: string
+  lots: number
+  per_share: number
+  created_at: string
+}
+
+export type StockSettings = {
+  rdn_account_id: string | null
+  opening_capital: number
+}
+
 export const CASHFLOW_ORDER = [
   "income",
   "spending",

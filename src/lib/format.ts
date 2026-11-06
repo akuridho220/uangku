@@ -12,3 +12,10 @@ const compact = new Intl.NumberFormat("id-ID", {
 })
 
 export const formatCompact = (n: number) => compact.format(n)
+
+const pct = new Intl.NumberFormat("id-ID", {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+})
+
+export const formatPercent = (n: number) => `${n > 0 ? "+" : ""}${pct.format(n)}%`
