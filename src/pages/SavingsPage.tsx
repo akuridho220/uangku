@@ -16,10 +16,12 @@ import {
   type TransactionPreset,
 } from "@/components/transactions/TransactionDialog"
 import { StocksTab } from "@/components/stocks/StocksTab"
+import { useSearchParams } from "react-router-dom"
 
 export default function SavingsPage() {
   const acc = useAccounts()
   const cat = useCategories()
+  const [searchParams] = useSearchParams()
 
   const groups = useMemo(
     () =>
@@ -84,7 +86,7 @@ export default function SavingsPage() {
       ) : error ? (
         <p className="text-sm text-destructive">Gagal memuat: {error}</p>
       ) : (
-        <Tabs defaultValue={groups[0]?.cf.code}>
+        <Tabs defaultValue={searchParams.get("tab") === "saham" ? "saham" : groups[0]?.cf.code}>
           <TabsList>
             {groups.map((g) => (
               <TabsTrigger key={g.cf.id} value={g.cf.code}>
