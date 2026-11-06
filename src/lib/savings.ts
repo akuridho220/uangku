@@ -1,3 +1,4 @@
+import { todayISO } from "@/lib/date"
 import type { CategoryRow, TransactionRow, ValuationRow } from "@/types/db"
 
 export type HistoryRow = {
@@ -7,6 +8,8 @@ export type HistoryRow = {
   expected: number
   gain: number
 }
+
+export type SeriesPoint = { date: string; t: number; value: number; capital: number }
 
 export type PotStats = {
   configured: boolean
@@ -20,6 +23,12 @@ export type PotStats = {
   gainPct: number | null
   lastValuationDate: string | null
   history: HistoryRow[]
+  series: SeriesPoint[]
+}
+
+const toTime = (iso: string) => {
+  const [y, m, d] = iso.split("-").map(Number)
+  return new Date(y, m - 1, d).getTime()
 }
 
 /** Arus bersih (setoran − pencairan) dengan after < tanggal <= until. */
@@ -31,6 +40,44 @@ function netFlow(flows: TransactionRow[], after: string, until: string | null) {
     sum += t.account_in_id ? -t.amount : t.amount
   }
   return sum
+}
+
+/** Titik-titik untuk grafik: nilai dan modal pada setiap tanggal ada kejadian, plus hari ini. */
+function buildSeries(
+  startDate: string,
+  opening: number,
+  own: TransactionRow[],
+  vals: ValuationRow[]
+): SeriesPoint[] {
+  let value = opening
+  let capital = opening
+  const points: SeriesPoint[] = [{ date: startDate, t: toTime(startDate), value, capital }]
+
+  const dates = new Set<string>()
+  for (const t of own) if (t.tx_date > startDate) dates.add(t.tx_date)
+  for (const v of vals) dates.add(v.val_date)
+
+  for (const date of [...dates].sort()) {
+    if (date > startDate) {
+      for (const t of own) {
+        if (t.tx_date !== date) continue
+        const delta = t.account_in_id ? -t.amount : t.amount
+        value += delta
+        capital += delta
+      }
+    }
+    const sameDay = vals.filter((v) => v.val_date === date)
+    if (sameDay.length > 0) value = sameDay[sameDay.length - 1].value
+
+    if (date === startDate) points[0] = { ...points[0], value }
+    else points.push({ date, t: toTime(date), value, capital })
+  }
+
+  const today = todayISO()
+  const last = points[points.length - 1]
+  if (today > last.date) points.push({ date: today, t: toTime(today), value, capital })
+
+  return points
 }
 
 export function computePot(
@@ -53,6 +100,7 @@ export function computePot(
       gainPct: null,
       lastValuationDate: null,
       history: [],
+      series: [],
     }
   }
 
@@ -97,5 +145,6 @@ export function computePot(
     gainPct: capital > 0 ? (gain / capital) * 100 : null,
     lastValuationDate: vals.length > 0 ? vals[vals.length - 1].val_date : null,
     history,
+    series: buildSeries(startDate, category.opening_value, own, vals),
   }
 }

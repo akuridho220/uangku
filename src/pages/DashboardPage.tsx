@@ -13,6 +13,9 @@ import { BudgetWatch } from "@/components/dashboard/BudgetWatch"
 import { DailyBars } from "@/components/dashboard/DailyBars"
 import { ExpensePie } from "@/components/dashboard/ExpensePie"
 import { RecentTransactions } from "@/components/dashboard/RecentTransactions"
+import { useSavings } from "@/hooks/useSavings"
+import { GoalsProgress } from "@/components/dashboard/GoalsProgress"
+import { SavingsSummary } from "@/components/dashboard/SavingsSummary"
 
 export default function DashboardPage() {
   const [month, setMonth] = useState(currentMonthKey())
@@ -21,6 +24,35 @@ export default function DashboardPage() {
   const cat = useCategories()
   const tx = useTransactions(month)
   const bud = useBudgets(month)
+  const sav = useSavings(cat)
+
+  const savingItems =
+    sav.groups
+      .find((g) => g.cf.code === "saving_invest")
+      ?.pots.map((p) => {
+        const s = sav.stats.get(p.id)
+        return {
+          id: p.id,
+          name: p.name,
+          value: s?.value ?? 0,
+          gain: s?.gain ?? 0,
+          configured: !!s?.configured,
+        }
+      }) ?? []
+
+  const goalItems =
+    sav.groups
+      .find((g) => g.cf.code === "financial_goals")
+      ?.pots.map((p) => {
+        const s = sav.stats.get(p.id)
+        return {
+          id: p.id,
+          name: p.name,
+          value: s?.value ?? 0,
+          target: p.target_amount,
+          configured: !!s?.configured,
+        }
+      }) ?? []
 
   const items = useMemo(
     () => buildItems(tx.transactions, cat.categories, cat.cashflows, acc.accounts),
@@ -93,8 +125,8 @@ export default function DashboardPage() {
       }))
   }, [cat.cashflows, cat.categories, bud.budgets, tx.transactions])
 
-  const loading = acc.loading || cat.loading || tx.loading || bud.loading
-  const error = acc.error ?? cat.error ?? tx.error ?? bud.error
+  const loading = acc.loading || cat.loading || tx.loading || bud.loading || sav.loading
+  const error = acc.error ?? cat.error ?? tx.error ?? bud.error ?? sav.error
 
   return (
     <div className="space-y-5">
@@ -181,6 +213,27 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent>
                 <RecentTransactions items={items.slice(0, 5)} />
+              </CardContent>
+            </Card>
+          </div>
+          <div className="grid gap-4 lg:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Tabungan</CardTitle>
+                <CardDescription>Saving/Invest</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <SavingsSummary items={savingItems} />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Progress goals</CardTitle>
+                <CardDescription>Financial Goals</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <GoalsProgress items={goalItems} />
               </CardContent>
             </Card>
           </div>

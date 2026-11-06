@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils"
 import type { CategoryRow } from "@/types/db"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { ValueChart } from "@/components/savings/ValueChart"
 
 type Props = {
   category: CategoryRow
@@ -31,6 +32,7 @@ export function SavingCard({
   onDeleteValuation,
 }: Props) {
   const [showHistory, setShowHistory] = useState(false)
+  const [showChart, setShowChart] = useState(false)
   const target = category.target_amount
   const progress =
     target && target > 0 ? Math.max(0, Math.min(100, (stats.value / target) * 100)) : null
@@ -113,6 +115,12 @@ export function SavingCard({
               <Button size="sm" variant="outline" onClick={onUpdateValue}>
                 Update nilai
               </Button>
+            </div>
+            <div className="space-y-2">
+              <Button variant="ghost" size="sm" onClick={() => setShowChart((v) => !v)}>
+                {showChart ? "Sembunyikan" : "Lihat"} grafik
+              </Button>
+              {showChart && <ValueChart series={stats.series} />}
             </div>
 
             {stats.history.length > 0 && (
