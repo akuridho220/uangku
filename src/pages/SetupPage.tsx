@@ -3,8 +3,14 @@ import { AccountsTab } from "@/components/setup/AccountsTab"
 import { CategoriesTab } from "@/components/setup/CategoriesTab"
 import { CashflowsTab } from "@/components/setup/CashflowsTab"
 import { ImportTab } from "@/components/setup/ImportTab"
+import { useSearchParams } from "react-router-dom"
+import { BackupTab } from "@/components/setup/BackupTab"
 
 export default function SetupPage() {
+  const [searchParams] = useSearchParams()
+  const initialTab = ["account", "kategori", "cashflow", "data"].includes(searchParams.get("tab") ?? "")
+    ? (searchParams.get("tab") as string)
+    : "account"
   return (
     <div className="space-y-6">
       <div>
@@ -14,12 +20,12 @@ export default function SetupPage() {
         </p>
       </div>
 
-      <Tabs defaultValue="account">
+      <Tabs defaultValue={initialTab}>
         <TabsList>
           <TabsTrigger value="account">Account</TabsTrigger>
           <TabsTrigger value="kategori">Kategori</TabsTrigger>
           <TabsTrigger value="cashflow">Cashflow</TabsTrigger>
-          <TabsTrigger value="import">Import</TabsTrigger>
+          <TabsTrigger value="data">Data</TabsTrigger>
         </TabsList>
 
         <TabsContent value="account" className="mt-4">
@@ -31,7 +37,8 @@ export default function SetupPage() {
         <TabsContent value="cashflow" className="mt-4">
           <CashflowsTab />
         </TabsContent>
-        <TabsContent value="import" className="mt-4">
+        <TabsContent value="data" className="mt-4 space-y-8">
+          <BackupTab />
           <ImportTab />
         </TabsContent>
       </Tabs>

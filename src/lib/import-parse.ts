@@ -210,7 +210,10 @@ export function parseRows(
     }
 
     const isIncome = cf.code === "income"
-    const accountName = isIncome ? (inName ?? outName) : (outName ?? inName)
+    const isSavingLike = cf.code === "saving_invest" || cf.code === "financial_goals"
+    // Income selalu masuk; Saving/Goals yang hanya punya Transfer In = pencairan
+    const inbound = isIncome || (isSavingLike && !outName && !!inName)
+    const accountName = inbound ? (inName ?? outName) : (outName ?? inName)
     if (!accountName) {
       issues.push({ line, message: `Account (Transfer In/Out) kosong (${dateRaw}, ${categoryRaw})` })
       return
@@ -223,8 +226,8 @@ export function parseRows(
       amount,
       cashflowId: cf.id,
       categoryName: categoryRaw,
-      inName: isIncome ? accountName : null,
-      outName: isIncome ? null : accountName,
+      inName: inbound ? accountName : null,
+      outName: inbound ? null : accountName,
     })
   })
 

@@ -18,6 +18,7 @@ import { GoalsProgress } from "@/components/dashboard/GoalsProgress"
 import { RecentTransactions } from "@/components/dashboard/RecentTransactions"
 import { SavingsSummary } from "@/components/dashboard/SavingsSummary"
 import { StocksCard } from "@/components/dashboard/StocksCard"
+import { BackupReminder } from "@/components/dashboard/BackupReminder"
 
 export default function DashboardPage() {
   const [month, setMonth] = useState(currentMonthKey())
@@ -144,6 +145,7 @@ export default function DashboardPage() {
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
+        <BackupReminder />
         <h1 className="text-2xl font-semibold">Dashboard</h1>
         <MonthNav month={month} onChange={setMonth} />
       </div>
